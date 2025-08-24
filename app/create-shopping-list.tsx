@@ -4,7 +4,7 @@ import CreateShoppingList from './screens/CreateShoppingList';
 export default function CreateShoppingListScreen() {
     return (
         <>
-            <Stack.Screen options={{ title: 'Create Shopping List' }} />
+            <Stack.Screen options={{ title: 'Winkellijst maken' }} />
             <CreateShoppingList />
         </>
     );

@@ -22,7 +22,7 @@ export default function ProductList(): JSX.Element {
     const products = useSelector((state: RootState) => state.products.products);
     const dispatch = useDispatch<AppDispatch>();
 
-    // Group products by name
+    // producten groeperen op naam
     const groupedProducts: GroupedProduct[] = React.useMemo(() => {
         const groups: { [key: string]: GroupedProduct } = {};
 
@@ -50,7 +50,7 @@ export default function ProductList(): JSX.Element {
             groups[key].highestPrice = Math.max(groups[key].highestPrice, product.price);
             groups[key].storeCount = groups[key].stores.length;
 
-            // Sort stores by price (lowest first)
+            // sorteer de winkels op prijs
             groups[key].stores.sort((a, b) => a.price - b.price);
         });
 
@@ -90,8 +90,9 @@ export default function ProductList(): JSX.Element {
             <Text style={styles.storeCount}>
                 Available in {item.storeCount} store{item.storeCount !== 1 ? 's' : ''}
             </Text>
-
+            //TO DO : check als die index hier wel nodig is
             <View style={styles.storesContainer}>
+
                 {item.stores.map((storeData, index) => (
                     <View key={storeData.id} style={styles.storeRow}>
                         <View style={styles.storeInfo}>
@@ -112,16 +113,16 @@ export default function ProductList(): JSX.Element {
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No products yet</Text>
-            <Text style={styles.emptySubtitle}>Start by adding some products to compare prices!</Text>
+            <Text style={styles.emptyTitle}>Nog geen producten</Text>
+            <Text style={styles.emptySubtitle}>Begin met producten toe te voegen, zodat je de prijzen kan vergelijken!</Text>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Your Products</Text>
+            <Text style={styles.title}>Opgeslagen Producten</Text>
             <Text style={styles.subtitle}>
-                {groupedProducts.length} product{groupedProducts.length !== 1 ? 's' : ''} • {products.length} store entries
+                {groupedProducts.length} product{groupedProducts.length !== 1 ? 'en' : ''} • {products.length} winkels
             </Text>
 
             <FlatList

@@ -13,7 +13,7 @@ export default function Settings(): JSX.Element {
 
     const handleAddStore = (): void => {
         if (!newStoreName.trim()) {
-            Alert.alert('Error', 'Please enter a store name');
+            Alert.alert('Error', 'Voeg een winkelnaam toe');
             return;
         }
 
@@ -23,24 +23,24 @@ export default function Settings(): JSX.Element {
         );
 
         if (existingStore) {
-            Alert.alert('Error', 'This store already exists');
+            Alert.alert('Error', 'Winkel bestaat al');
             return;
         }
 
         dispatch(addStore({ name: newStoreName.trim() }));
         setNewStoreName('');
         setIsAddingStore(false);
-        Alert.alert('Success', 'Store added successfully!');
+        Alert.alert('Success', 'Winkel succesvol toegevoegd!');
     };
 
     const handleRemoveStore = (storeId: string, storeName: string): void => {
         Alert.alert(
-            'Remove Store',
-            `Are you sure you want to remove "${storeName}"? This cannot be undone.`,
+            'Winkel verwijderen',
+            `Weet je zeker dat je "${storeName}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: 'Annuleer', style: 'cancel' },
                 {
-                    text: 'Remove',
+                    text: 'Verwijder',
                     style: 'destructive',
                     onPress: () => dispatch(removeStore(storeId))
                 }
@@ -53,38 +53,38 @@ export default function Settings(): JSX.Element {
             <View style={styles.storeInfo}>
                 <Text style={styles.storeName}>{item.name}</Text>
                 <Text style={styles.storeDate}>
-                    Added {new Date(item.dateAdded).toLocaleDateString()}
+                    Toegevoegd {new Date(item.dateAdded).toLocaleDateString()}
                 </Text>
             </View>
             <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => handleRemoveStore(item.id, item.name)}
             >
-                <Text style={styles.removeButtonText}>Remove</Text>
+                <Text style={styles.removeButtonText}>Verwijderen</Text>
             </TouchableOpacity>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Store Settings</Text>
-            <Text style={styles.subtitle}>Manage your tracked stores</Text>
+            <Text style={styles.title}>Winkel instellingen</Text>
+            <Text style={styles.subtitle}>Beweheer je opgeslagen winkels</Text>
 
             {/* Add Store Section */}
             <View style={styles.addSection}>
-                <Text style={styles.sectionTitle}>Add New Store</Text>
+                <Text style={styles.sectionTitle}>Winkel toevoegen</Text>
                 {!isAddingStore ? (
                     <TouchableOpacity
                         style={styles.addButton}
                         onPress={() => setIsAddingStore(true)}
                     >
-                        <Text style={styles.addButtonText}>+ Add Store</Text>
+                        <Text style={styles.addButtonText}>+ Winkel toevoegen</Text>
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.addForm}>
                         <TextInput
                             style={styles.input}
-                            placeholder="Enter store name"
+                            placeholder="Winkel naam"
                             value={newStoreName}
                             onChangeText={setNewStoreName}
                             autoFocus
@@ -97,13 +97,13 @@ export default function Settings(): JSX.Element {
                                     setNewStoreName('');
                                 }}
                             >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                                <Text style={styles.cancelButtonText}>Annuleer</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={styles.saveButton}
                                 onPress={handleAddStore}
                             >
-                                <Text style={styles.saveButtonText}>Save</Text>
+                                <Text style={styles.saveButtonText}>Opslaan</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

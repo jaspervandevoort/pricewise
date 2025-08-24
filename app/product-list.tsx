@@ -4,7 +4,7 @@ import ProductList from './screens/ProductList';
 export default function ProductListScreen() {
     return (
         <>
-            <Stack.Screen options={{ title: 'My Products' }} />
+            <Stack.Screen options={{ title: 'Mijn producten' }} />
             <ProductList />
         </>
     );

@@ -4,7 +4,7 @@ import ProductAdd from './screens/productadd';
 export default function AddProductScreen() {
     return (
         <>
-            <Stack.Screen options={{ title: 'Add Product' }} />
+            <Stack.Screen options={{ title: 'Voeg product toe' }} />
             <ProductAdd />
         </>
     );

@@ -16,13 +16,13 @@ export default function ProductAdd(): JSX.Element {
     const dispatch = useDispatch<AppDispatch>();
 
     const handleAddProduct = (): void => {
-        // Validation
+        // Validatie
         if (!productName.trim() || !price.trim() || !selectedStore) {
             Alert.alert('Error', 'Please fill in all fields and select a store');
             return;
         }
 
-        // Use European number parsing
+        // Momenteel werkt de app alleen met europese prijzen/notatie
         if (!isValidEuropeanNumber(price)) {
             Alert.alert('Error', 'Please enter a valid price (e.g., 0,99 or 1,50)');
             return;
@@ -30,7 +30,7 @@ export default function ProductAdd(): JSX.Element {
 
         const priceNumber = parseEuropeanNumber(price);
 
-        // Create product object
+        // product aanmaken
         const newProduct: Product = {
             id: Date.now().toString(),
             name: productName.trim(),
@@ -39,10 +39,10 @@ export default function ProductAdd(): JSX.Element {
             dateAdded: new Date().toISOString()
         };
 
-        // Dispatch to Redux store
+        // naar redux sturen
         dispatch(addProduct(newProduct));
 
-        // Clear form
+        // formulier weg yeeten
         setProductName('');
         setPrice('');
         setSelectedStore(null);
@@ -68,9 +68,9 @@ export default function ProductAdd(): JSX.Element {
         return (
             <View style={styles.container}>
                 <View style={styles.noStoresContainer}>
-                    <Text style={styles.noStoresTitle}>No Stores Available</Text>
+                    <Text style={styles.noStoresTitle}>Geen winkels beschikbaar</Text>
                     <Text style={styles.noStoresText}>
-                        Please add some stores in Settings first before adding products.
+                        Voeg winkels toe om producten toe te voegen.
                     </Text>
                 </View>
             </View>

@@ -93,18 +93,18 @@ export default function CreateShoppingList(): JSX.Element {
 
     const handleSaveList = (): void => {
         if (currentList.length === 0) {
-            Alert.alert('Error', 'Please add at least one item to your shopping list');
+            Alert.alert('Error', 'Voeg minstens één product toe aan je lijst voordat je deze opslaat.');
             return;
         }
 
         if (!listName.trim()) {
-            Alert.alert('Error', 'Please enter a name for your shopping list');
+            Alert.alert('Error', 'Geef je lijst een naam voordat je deze opslaat.');
             return;
         }
 
         dispatch(saveCurrentList(listName.trim()));
         setListName('');
-        Alert.alert('Success', 'Shopping list saved successfully!');
+        Alert.alert('Success', 'Winkelijst succesvol opgeslagen!');
     };
 
     const getTotalItems = (): number => {
@@ -158,15 +158,16 @@ export default function CreateShoppingList(): JSX.Element {
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No products available</Text>
-            <Text style={styles.emptySubtitle}>Add some products first to create shopping lists!</Text>
+            <Text style={styles.emptyTitle}>Geen producten beschikbaar</Text>
+            <Text style={styles.emptySubtitle}>Voeg productoen om een winkellijst te maken!</Text>
         </View>
     );
 
+    // Current list bestaat nog niet
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Create Shopping List</Text>
-            <Text style={styles.subtitle}>Select products and quantities</Text>
+            <Text style={styles.title}>Maak Winkellijst</Text>
+            <Text style={styles.subtitle}>Kies producten en hoeveelheden</Text>
 
             {/* Current List Summary */}
             {currentList.length > 0 && (

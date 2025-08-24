@@ -6,7 +6,7 @@ export default function OptimizationResultsScreen() {
 
     return (
         <>
-            <Stack.Screen options={{ title: 'Price Optimization' }} />
+            <Stack.Screen options={{ title: 'Prijs Optimalisatie' }} />
             <OptimizationResults listId={listId} />
         </>
     );
