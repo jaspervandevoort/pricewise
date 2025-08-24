@@ -1,137 +1,142 @@
-import React, { JSX } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { JSX, useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '~/store/store';
-import { removeProduct, Product } from '~/store/productSlice';
+import { removeProduct, Product, setProducts } from '~/store/productSlice';
+import { getProducts, deleteProduct } from '~/lib/sanityClient';
 import { formatEuropeanPrice } from '~/util/numberUtils';
-
-interface GroupedProduct {
-    name: string;
-    stores: Array<{
-        id: string;
-        store: string;
-        price: number;
-        dateAdded: string;
-    }>;
-    lowestPrice: number;
-    highestPrice: number;
-    storeCount: number;
-}
 
 export default function ProductList(): JSX.Element {
     const products = useSelector((state: RootState) => state.products.products);
     const dispatch = useDispatch<AppDispatch>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-    // producten groeperen op naam
-    const groupedProducts: GroupedProduct[] = React.useMemo(() => {
-        const groups: { [key: string]: GroupedProduct } = {};
+    // Load products from Sanity on component mount (only if empty)
+    useEffect(() => {
+        if (products.length === 0) {
+            loadProductsFromSanity();
+        }
+    }, []);
 
-        products.forEach(product => {
-            const key = product.name.toLowerCase();
-
-            if (!groups[key]) {
-                groups[key] = {
-                    name: product.name,
-                    stores: [],
-                    lowestPrice: product.price,
-                    highestPrice: product.price,
-                    storeCount: 0
-                };
+    const loadProductsFromSanity = async (showRefresh = false) => {
+        try {
+            if (showRefresh) {
+                setIsRefreshing(true);
+            } else {
+                setIsLoading(true);
             }
 
-            groups[key].stores.push({
-                id: product.id,
-                store: product.store,
-                price: product.price,
-                dateAdded: product.dateAdded
-            });
+            const sanityProducts = await getProducts();
 
-            groups[key].lowestPrice = Math.min(groups[key].lowestPrice, product.price);
-            groups[key].highestPrice = Math.max(groups[key].highestPrice, product.price);
-            groups[key].storeCount = groups[key].stores.length;
+            // Convert Sanity format to app format
+            const appProducts: Product[] = sanityProducts.map((sanityProduct: any) => ({
+                id: sanityProduct._id,
+                name: sanityProduct.name,
+                price: sanityProduct.price,
+                store: sanityProduct.store,
+                dateAdded: sanityProduct.dateAdded
+            }));
 
-            // sorteer de winkels op prijs
-            groups[key].stores.sort((a, b) => a.price - b.price);
-        });
+            // Update Redux store with fetched products
+            dispatch(setProducts(appProducts));
 
-        return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
-    }, [products]);
+        } catch (error) {
+            console.error('Error loading products:', error);
+            Alert.alert('Error', 'Failed to load products from server');
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    };
 
-    const handleDeleteProduct = (productId: string, productName: string, storeName: string): void => {
+    const handleDeleteProduct = async (id: string) => {
         Alert.alert(
             'Delete Product',
-            `Remove "${productName}" from ${storeName}?`,
+            'Are you sure you want to delete this product?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Delete',
                     style: 'destructive',
-                    onPress: () => dispatch(removeProduct(productId))
+                    onPress: async () => {
+                        try {
+                            // Delete from Sanity first
+                            await deleteProduct(id);
+
+                            // Then remove from Redux store
+                            dispatch(removeProduct(id));
+
+                            Alert.alert('Success', 'Product deleted successfully');
+                        } catch (error) {
+                            console.error('Error deleting product:', error);
+                            Alert.alert('Error', 'Failed to delete product. Please try again.');
+                        }
+                    }
                 }
             ]
         );
     };
 
-    const renderGroupedProduct = ({ item }: { item: GroupedProduct }) => (
+    const handleRefresh = () => {
+        loadProductsFromSanity(true);
+    };
+
+    const renderProduct = ({ item }: { item: Product }) => (
         <View style={styles.productCard}>
-            <View style={styles.productHeader}>
+            <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.name}</Text>
-                <View style={styles.priceRange}>
-                    {item.lowestPrice === item.highestPrice ? (
-                        <Text style={styles.singlePrice}>{formatEuropeanPrice(item.lowestPrice)}</Text>
-                    ) : (
-                        <Text style={styles.priceRangeText}>
-                            {formatEuropeanPrice(item.lowestPrice)} - {formatEuropeanPrice(item.highestPrice)}
-                        </Text>
-                    )}
-                </View>
+                <Text style={styles.productStore}>Store: {item.store}</Text>
+                <Text style={styles.productPrice}>{formatEuropeanPrice(item.price)}</Text>
+                <Text style={styles.productDate}>
+                    Added: {new Date(item.dateAdded).toLocaleDateString()}
+                </Text>
             </View>
-
-            <Text style={styles.storeCount}>
-                Available in {item.storeCount} store{item.storeCount !== 1 ? 's' : ''}
-            </Text>
-            //TO DO : check als die index hier wel nodig is
-            <View style={styles.storesContainer}>
-
-                {item.stores.map((storeData, index) => (
-                    <View key={storeData.id} style={styles.storeRow}>
-                        <View style={styles.storeInfo}>
-                            <Text style={styles.storeName}>{storeData.store}</Text>
-                            <Text style={styles.storePrice}>{formatEuropeanPrice(storeData.price)}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() => handleDeleteProduct(storeData.id, item.name, storeData.store)}
-                        >
-                            <Text style={styles.deleteButtonText}>×</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))}
-            </View>
+            <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteProduct(item.id)}
+            >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
         </View>
     );
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>Nog geen producten</Text>
-            <Text style={styles.emptySubtitle}>Begin met producten toe te voegen, zodat je de prijzen kan vergelijken!</Text>
+            <Text style={styles.emptyTitle}>No products yet</Text>
+            <Text style={styles.emptySubtitle}>Start by adding some products to compare prices!</Text>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+                <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
         </View>
     );
 
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Loading products...</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Opgeslagen Producten</Text>
-            <Text style={styles.subtitle}>
-                {groupedProducts.length} product{groupedProducts.length !== 1 ? 'en' : ''} • {products.length} winkels
-            </Text>
+            <Text style={styles.title}>Your Products</Text>
+            <Text style={styles.subtitle}>{products.length} products saved</Text>
 
             <FlatList
-                data={groupedProducts}
-                renderItem={renderGroupedProduct}
-                keyExtractor={(item) => item.name}
+                data={products}
+                renderItem={renderProduct}
+                keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={renderEmptyState}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                    />
+                }
             />
         </View>
     );
@@ -159,90 +164,55 @@ const styles = StyleSheet.create({
     },
     productCard: {
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: 10,
+        padding: 15,
+        marginBottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 1,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
+        shadowRadius: 2,
+        elevation: 3,
     },
-    productHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
+    productInfo: {
+        flex: 1,
     },
     productName: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        flex: 1,
-    },
-    priceRange: {
-        alignItems: 'flex-end',
-    },
-    singlePrice: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#007AFF',
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
     },
-    priceRangeText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#007AFF',
-    },
-    storeCount: {
+    productStore: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 12,
+        marginBottom: 4,
     },
-    storesContainer: {
-        borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-        paddingTop: 12,
-    },
-    storeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f8f8f8',
-    },
-    storeInfo: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    storeName: {
+    productPrice: {
         fontSize: 16,
-        color: '#333',
-        fontWeight: '500',
+        fontWeight: 'bold',
+        color: '#007AFF',
+        marginBottom: 4,
     },
-    storePrice: {
-        fontSize: 16,
-        color: '#666',
-        fontWeight: '600',
+    productDate: {
+        fontSize: 12,
+        color: '#999',
     },
     deleteButton: {
         backgroundColor: '#FF3B30',
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
     },
     deleteButtonText: {
         color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 14,
+        fontWeight: '600',
     },
     emptyContainer: {
         flex: 1,
@@ -254,11 +224,33 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 10,
+        marginBottom: 8,
     },
     emptySubtitle: {
         fontSize: 16,
         color: '#666',
         textAlign: 'center',
+        marginBottom: 20,
+    },
+    refreshButton: {
+        backgroundColor: '#007AFF',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+    refreshButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+    },
+    loadingText: {
+        fontSize: 18,
+        color: '#666',
     },
 });

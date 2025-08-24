@@ -10,16 +10,24 @@ export interface Product {
 
 interface ProductState {
     products: Product[];
+    isLoading: boolean;
 }
 
 const initialState: ProductState = {
-    products: []
+    products: [],
+    isLoading: false
 };
 
 const productSlice = createSlice({
     name: 'products',
     initialState,
     reducers: {
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.isLoading = action.payload;
+        },
+        setProducts: (state, action: PayloadAction<Product[]>) => {
+            state.products = action.payload;
+        },
         addProduct: (state, action: PayloadAction<Product>) => {
             state.products.push(action.payload);
         },
@@ -31,9 +39,20 @@ const productSlice = createSlice({
             if (index !== -1) {
                 state.products[index] = action.payload;
             }
+        },
+        clearProducts: (state) => {
+            state.products = [];
         }
     }
 });
 
-export const { addProduct, removeProduct, updateProduct } = productSlice.actions;
+export const {
+    setLoading,
+    setProducts,
+    addProduct,
+    removeProduct,
+    updateProduct,
+    clearProducts
+} = productSlice.actions;
+
 export default productSlice.reducer;

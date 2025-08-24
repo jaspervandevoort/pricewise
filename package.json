@@ -15,6 +15,7 @@
     "@expo/vector-icons": "^14.0.0",
     "@react-navigation/native": "^7.0.3",
     "@reduxjs/toolkit": "^2.8.2",
+    "@sanity/client": "^7.9.0",
     "expo": "53.0.22",
     "expo-constants": "~17.1.4",
     "expo-linking": "~7.1.4",

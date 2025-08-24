@@ -1,8 +1,9 @@
-import React, { JSX, useState } from 'react';
+import React, { JSX, useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '~/store/store';
-import { addStore, removeStore, Store } from '~/store/storesSlice';
+import { addStore, removeStore, setStores, Store } from '~/store/storesSlice';
+import { getStores, createStore, deleteStore } from '~/lib/sanityClient';
 
 export default function Settings(): JSX.Element {
     const stores = useSelector((state: RootState) => state.stores.stores);
@@ -10,8 +11,34 @@ export default function Settings(): JSX.Element {
 
     const [newStoreName, setNewStoreName] = useState<string>('');
     const [isAddingStore, setIsAddingStore] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const handleAddStore = (): void => {
+    // Load stores on component mount
+    useEffect(() => {
+        loadStoresFromSanity();
+    }, []);
+
+    const loadStoresFromSanity = async () => {
+        try {
+            setIsLoading(true);
+            const sanityStores = await getStores();
+
+            const appStores: Store[] = sanityStores.map((sanityStore: any) => ({
+                id: sanityStore._id,
+                name: sanityStore.name,
+                dateAdded: sanityStore.dateAdded
+            }));
+
+            dispatch(setStores(appStores));
+        } catch (error) {
+            console.error('Error loading stores:', error);
+            Alert.alert('Error', 'Failed to load stores from server');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAddStore = async (): Promise<void> => {
         if (!newStoreName.trim()) {
             Alert.alert('Error', 'Voeg een winkelnaam toe');
             return;
@@ -27,10 +54,30 @@ export default function Settings(): JSX.Element {
             return;
         }
 
-        dispatch(addStore({ name: newStoreName.trim() }));
-        setNewStoreName('');
-        setIsAddingStore(false);
-        Alert.alert('Success', 'Winkel succesvol toegevoegd!');
+        try {
+            const newStore = {
+                name: newStoreName.trim(),
+
+                dateAdded: new Date().toISOString()
+            };
+
+            // Save to Sanity first
+            const sanityStore = await createStore(newStore);
+
+            // Then add to Redux store with Sanity ID
+            const storeWithSanityId: Store = {
+                ...newStore,
+                id: sanityStore._id
+            };
+
+            dispatch(addStore(storeWithSanityId));
+            setNewStoreName('');
+            setIsAddingStore(false);
+            Alert.alert('Success', 'Winkel succesvol toegevoegd!');
+        } catch (error) {
+            console.error('Error adding store:', error);
+            Alert.alert('Error', 'Failed to add store. Please try again.');
+        }
     };
 
     const handleRemoveStore = (storeId: string, storeName: string): void => {
@@ -42,7 +89,20 @@ export default function Settings(): JSX.Element {
                 {
                     text: 'Verwijder',
                     style: 'destructive',
-                    onPress: () => dispatch(removeStore(storeId))
+                    onPress: async () => {
+                        try {
+                            // Delete from Sanity first
+                            await deleteStore(storeId);
+
+                            // Then remove from Redux store
+                            dispatch(removeStore(storeId));
+
+                            Alert.alert('Success', 'Winkel succesvol verwijderd');
+                        } catch (error) {
+                            console.error('Error deleting store:', error);
+                            Alert.alert('Error', 'Failed to delete store. Please try again.');
+                        }
+                    }
                 }
             ]
         );
@@ -55,6 +115,7 @@ export default function Settings(): JSX.Element {
                 <Text style={styles.storeDate}>
                     Toegevoegd {new Date(item.dateAdded).toLocaleDateString()}
                 </Text>
+
             </View>
             <TouchableOpacity
                 style={styles.removeButton}
@@ -65,10 +126,18 @@ export default function Settings(): JSX.Element {
         </View>
     );
 
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Winkels laden...</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Winkel instellingen</Text>
-            <Text style={styles.subtitle}>Beweheer je opgeslagen winkels</Text>
+            <Text style={styles.subtitle}>Beheer je opgeslagen winkels ({stores.length} totaal)</Text>
 
             {/* Add Store Section */}
             <View style={styles.addSection}>
@@ -112,14 +181,25 @@ export default function Settings(): JSX.Element {
 
             {/* Stores List */}
             <View style={styles.storesSection}>
-                <Text style={styles.sectionTitle}>Your Stores ({stores.length})</Text>
-                <FlatList
-                    data={stores}
-                    renderItem={renderStore}
-                    keyExtractor={(item) => item.id}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.storesList}
-                />
+                <Text style={styles.sectionTitle}>
+                    Jouw Winkels ({stores.length})
+                </Text>
+                {stores.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Text style={styles.emptyTitle}>Geen winkels gevonden</Text>
+                        <Text style={styles.emptySubtitle}>
+                            Voeg winkels toe om schrijffouten te voorkomen bij het toevoegen van producten
+                        </Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={stores}
+                        renderItem={renderStore}
+                        keyExtractor={(item) => item.id}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.storesList}
+                    />
+                )}
             </View>
         </View>
     );
@@ -141,6 +221,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
         marginBottom: 30,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+    },
+    loadingText: {
+        fontSize: 18,
+        color: '#666',
     },
     addSection: {
         backgroundColor: 'white',
@@ -238,9 +328,25 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 4,
     },
+    storeLocation: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 2,
+    },
     storeDate: {
         fontSize: 12,
-        color: '#666',
+        color: '#999',
+        marginBottom: 2,
+    },
+    storeStatus: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    activeStatus: {
+        color: '#34C759',
+    },
+    inactiveStatus: {
+        color: '#FF3B30',
     },
     removeButton: {
         backgroundColor: '#FF3B30',
@@ -252,5 +358,21 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 12,
         fontWeight: '600',
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 8,
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+        lineHeight: 20,
     },
 });

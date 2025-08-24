@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useSelector } from 'react-redux';
 import { RootState } from '~/store/store';
 import { optimizeShoppingList, OptimizationResult, StoreOption } from '~/util/optimizationUtils';
+import { formatEuropeanPrice } from '~/util/numberUtils';
 
 interface OptimizationResultsProps {
     listId?: string;
@@ -26,7 +27,7 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
         <View key={storeOption.storeName} style={styles.storeCard}>
             <View style={styles.storeHeader}>
                 <Text style={styles.storeName}>{storeOption.storeName}</Text>
-                <Text style={styles.storeCost}>${storeOption.totalCost.toFixed(2)}</Text>
+                <Text style={styles.storeCost}>{formatEuropeanPrice(storeOption.totalCost)}</Text>
             </View>
             <Text style={styles.storeSubtext}>{storeOption.itemCount} items</Text>
 
@@ -35,7 +36,7 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
                     <View key={index} style={styles.itemRow}>
                         <Text style={styles.itemName}>{item.productName}</Text>
                         <Text style={styles.itemDetails}>
-                            {item.quantity} × ${item.pricePerUnit.toFixed(2)} = ${item.totalPrice.toFixed(2)}
+                            {item.quantity} × {formatEuropeanPrice(item.pricePerUnit)} = {formatEuropeanPrice(item.totalPrice)}
                         </Text>
                     </View>
                 ))}
@@ -80,7 +81,7 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
             {optimization.savings > 0 && (
                 <View style={styles.savingsCard}>
                     <Text style={styles.savingsTitle}>💰 Potential Savings</Text>
-                    <Text style={styles.savingsAmount}>${optimization.savings.toFixed(2)}</Text>
+                    <Text style={styles.savingsAmount}>{formatEuropeanPrice(optimization.savings)}</Text>
                     <Text style={styles.savingsSubtext}>
                         Save by shopping at multiple stores instead of just one
                     </Text>
@@ -94,7 +95,7 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
                     onPress={() => setActiveTab('multi')}
                 >
                     <Text style={[styles.tabText, activeTab === 'multi' && styles.activeTabText]}>
-                        Multi-Store (${optimization.totalMultiStoreCost.toFixed(2)})
+                        Multi-Store ({formatEuropeanPrice(optimization.totalMultiStoreCost)})
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -102,7 +103,7 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
                     onPress={() => setActiveTab('single')}
                 >
                     <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>
-                        Single Store (${optimization.totalSingleStoreCost.toFixed(2)})
+                        Single Store ({formatEuropeanPrice(optimization.totalSingleStoreCost)})
                     </Text>
                 </TouchableOpacity>
             </View>
