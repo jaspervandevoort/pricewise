@@ -96,24 +96,6 @@ export default function Home() {
             </TouchableOpacity>
           </Link>
         </View>
-
-        {/* Quick Actions */}
-        {currentList.length > 0 && (
-          <View className="mx-5 bg-white rounded-2xl p-5 border-2 border-dashed border-red-500">
-            <Text className="text-base font-bold text-red-500 mb-3 text-center">
-              🚀 Quick Action
-            </Text>
-            <Link href="/optimization-results" asChild>
-              <TouchableOpacity className="bg-red-500 rounded-xl p-4 items-center">
-                <Text className="text-white text-base font-semibold">
-                  Optimize Current List ({currentList.length} items)
-                </Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-        )}
-
-        {/* Footer */}
         <View className="px-5 py-8 items-center">
           <Text className="text-base text-gray-600 italic">
             App gemaakt door Jasper Vandevoort - Mobile Apps

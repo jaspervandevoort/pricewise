@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '~/store/store';
 import { ShoppingList } from '~/store/shoppingListSlice';
@@ -36,14 +36,14 @@ export default function ShoppingListSelector(): JSX.Element {
 
         return (
             <TouchableOpacity
-                style={styles.listCard}
+                className="bg-white rounded-xl p-4 mb-2.5 shadow-md active:opacity-75"
                 onPress={() => handleSelectList(item.id)}
             >
-                <View style={styles.listHeader}>
-                    <Text style={styles.listName}>{item.name}</Text>
-                    <Text style={styles.listCost}>{formatEuropeanPrice(totalCost)}</Text>
+                <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-lg font-bold text-gray-800 flex-1">{item.name}</Text>
+                    <Text className="text-lg font-bold text-blue-600">{formatEuropeanPrice(totalCost)}</Text>
                 </View>
-                <Text style={styles.listDetails}>
+                <Text className="text-sm text-gray-600">
                     {totalItems} items • Created {new Date(item.createdAt).toLocaleDateString()}
                 </Text>
             </TouchableOpacity>
@@ -51,144 +51,34 @@ export default function ShoppingListSelector(): JSX.Element {
     };
 
     const renderEmptyState = () => (
-        <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No saved shopping lists</Text>
-            <Text style={styles.emptySubtitle}>
-                Create and save shopping lists first to optimize them here
+        <View className="flex-1 justify-center items-center pt-24">
+            <Text className="text-xl font-bold text-gray-800 mb-2">Geen opgeslagen boodschappenlijst</Text>
+            <Text className="text-base text-gray-600 text-center leading-6">
+                Maak een nieuwe lijst aan om te beginnen met optimaliseren!
             </Text>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Select Shopping List to Optimize</Text>
-
-            {/* Current List Option */}
-            {currentList.length > 0 && (
-                <View style={styles.currentListSection}>
-                    <Text style={styles.sectionTitle}>Current List</Text>
-                    <TouchableOpacity
-                        style={[styles.listCard, styles.currentListCard]}
-                        onPress={handleOptimizeCurrentList}
-                    >
-                        <View style={styles.listHeader}>
-                            <Text style={styles.listName}>Current Shopping List</Text>
-                            <Text style={styles.listCost}>{formatEuropeanPrice(getCurrentListTotalCost())}</Text>
-                        </View>
-                        <Text style={styles.listDetails}>
-                            {getCurrentListTotalItems()} items • Not saved yet
-                        </Text>
-                        <Text style={styles.optimizeNowBadge}>Optimize Now</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+        <View className="flex-1 bg-gray-100 p-5">
+            <Text className="text-2xl font-bold text-gray-800 mb-5 text-center">
+                Kies Boodschappenlijst om te optimaliseren
+            </Text>
 
             {/* Saved Lists */}
-            <View style={styles.savedListsSection}>
-                <Text style={styles.sectionTitle}>Saved Lists ({savedLists.length})</Text>
+            <View className="flex-1">
+                <Text className="text-lg font-bold text-gray-800 mb-3">
+                    Opgeslagen boodschappenlijsten ({savedLists.length})
+                </Text>
                 <FlatList
                     data={savedLists}
                     renderItem={renderListItem}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
+                    className="flex-1"
                     ListEmptyComponent={renderEmptyState}
                 />
             </View>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        padding: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    currentListSection: {
-        marginBottom: 20,
-    },
-    savedListsSection: {
-        flex: 1,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 12,
-    },
-    listContainer: {
-        flexGrow: 1,
-    },
-    listCard: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 10,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    currentListCard: {
-        borderColor: '#007AFF',
-        borderWidth: 2,
-    },
-    listHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    listName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        flex: 1,
-    },
-    listCost: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#007AFF',
-    },
-    listDetails: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 4,
-    },
-    optimizeNowBadge: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#007AFF',
-        textAlign: 'right',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 100,
-    },
-    emptyTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-});

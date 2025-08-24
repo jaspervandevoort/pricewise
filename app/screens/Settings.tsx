@@ -1,5 +1,5 @@
 import React, { JSX, useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '~/store/store';
 import { addStore, removeStore, setStores, Store } from '~/store/storesSlice';
@@ -57,7 +57,6 @@ export default function Settings(): JSX.Element {
         try {
             const newStore = {
                 name: newStoreName.trim(),
-
                 dateAdded: new Date().toISOString()
             };
 
@@ -109,70 +108,69 @@ export default function Settings(): JSX.Element {
     };
 
     const renderStore = ({ item }: { item: Store }) => (
-        <View style={styles.storeCard}>
-            <View style={styles.storeInfo}>
-                <Text style={styles.storeName}>{item.name}</Text>
-                <Text style={styles.storeDate}>
+        <View className="bg-white rounded-lg p-4 mb-2 flex-row justify-between items-center shadow-sm">
+            <View className="flex-1">
+                <Text className="text-base font-semibold text-gray-800 mb-1">{item.name}</Text>
+                <Text className="text-xs text-gray-400">
                     Toegevoegd {new Date(item.dateAdded).toLocaleDateString()}
                 </Text>
-
             </View>
             <TouchableOpacity
-                style={styles.removeButton}
+                className="bg-red-500 px-3 py-1.5 rounded"
                 onPress={() => handleRemoveStore(item.id, item.name)}
             >
-                <Text style={styles.removeButtonText}>Verwijderen</Text>
+                <Text className="text-white text-xs font-semibold">Verwijderen</Text>
             </TouchableOpacity>
         </View>
     );
 
     if (isLoading) {
         return (
-            <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Winkels laden...</Text>
+            <View className="flex-1 justify-center items-center bg-gray-100">
+                <Text className="text-lg text-gray-600">Winkels laden...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Winkel instellingen</Text>
-            <Text style={styles.subtitle}>Beheer je opgeslagen winkels ({stores.length} totaal)</Text>
+        <View className="flex-1 bg-gray-100 p-5">
+            <Text className="text-2xl font-bold text-gray-800 mb-2">Winkel instellingen</Text>
+            <Text className="text-base text-gray-600 mb-8">Beheer je opgeslagen winkels ({stores.length} totaal)</Text>
 
             {/* Add Store Section */}
-            <View style={styles.addSection}>
-                <Text style={styles.sectionTitle}>Winkel toevoegen</Text>
+            <View className="bg-white rounded-lg p-4 mb-5 shadow-md">
+                <Text className="text-lg font-bold text-gray-800 mb-3">Winkel toevoegen</Text>
                 {!isAddingStore ? (
                     <TouchableOpacity
-                        style={styles.addButton}
+                        className="bg-blue-500 rounded-lg p-3 items-center"
                         onPress={() => setIsAddingStore(true)}
                     >
-                        <Text style={styles.addButtonText}>+ Winkel toevoegen</Text>
+                        <Text className="text-white text-base font-semibold">+ Winkel toevoegen</Text>
                     </TouchableOpacity>
                 ) : (
-                    <View style={styles.addForm}>
+                    <View className="gap-3">
                         <TextInput
-                            style={styles.input}
+                            className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
                             placeholder="Winkel naam"
                             value={newStoreName}
                             onChangeText={setNewStoreName}
                             autoFocus
                         />
-                        <View style={styles.addFormButtons}>
+                        <View className="flex-row gap-2">
                             <TouchableOpacity
-                                style={styles.cancelButton}
+                                className="flex-1 bg-gray-200 rounded-lg p-3 items-center"
                                 onPress={() => {
                                     setIsAddingStore(false);
                                     setNewStoreName('');
                                 }}
                             >
-                                <Text style={styles.cancelButtonText}>Annuleer</Text>
+                                <Text className="text-gray-600 text-base font-semibold">Annuleer</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={styles.saveButton}
+                                className="flex-1 bg-blue-500 rounded-lg p-3 items-center"
                                 onPress={handleAddStore}
                             >
-                                <Text style={styles.saveButtonText}>Opslaan</Text>
+                                <Text className="text-white text-base font-semibold">Opslaan</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -180,14 +178,14 @@ export default function Settings(): JSX.Element {
             </View>
 
             {/* Stores List */}
-            <View style={styles.storesSection}>
-                <Text style={styles.sectionTitle}>
+            <View className="flex-1">
+                <Text className="text-lg font-bold text-gray-800 mb-3">
                     Jouw Winkels ({stores.length})
                 </Text>
                 {stores.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyTitle}>Geen winkels gevonden</Text>
-                        <Text style={styles.emptySubtitle}>
+                    <View className="items-center py-10">
+                        <Text className="text-lg font-bold text-gray-800 mb-2">Geen winkels gevonden</Text>
+                        <Text className="text-sm text-gray-600 text-center leading-5">
                             Voeg winkels toe om schrijffouten te voorkomen bij het toevoegen van producten
                         </Text>
                     </View>
@@ -197,182 +195,10 @@ export default function Settings(): JSX.Element {
                         renderItem={renderStore}
                         keyExtractor={(item) => item.id}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.storesList}
+                        className="pb-5"
                     />
                 )}
             </View>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        padding: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 30,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-    },
-    loadingText: {
-        fontSize: 18,
-        color: '#666',
-    },
-    addSection: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 12,
-    },
-    addButton: {
-        backgroundColor: '#007AFF',
-        borderRadius: 8,
-        padding: 12,
-        alignItems: 'center',
-    },
-    addButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    addForm: {
-        gap: 12,
-    },
-    input: {
-        backgroundColor: '#f8f8f8',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: '#ddd',
-    },
-    addFormButtons: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    cancelButton: {
-        flex: 1,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-        padding: 12,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        color: '#666',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    saveButton: {
-        flex: 1,
-        backgroundColor: '#007AFF',
-        borderRadius: 8,
-        padding: 12,
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    storesSection: {
-        flex: 1,
-    },
-    storesList: {
-        paddingBottom: 20,
-    },
-    storeCard: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    storeInfo: {
-        flex: 1,
-    },
-    storeName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
-    },
-    storeLocation: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 2,
-    },
-    storeDate: {
-        fontSize: 12,
-        color: '#999',
-        marginBottom: 2,
-    },
-    storeStatus: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    activeStatus: {
-        color: '#34C759',
-    },
-    inactiveStatus: {
-        color: '#FF3B30',
-    },
-    removeButton: {
-        backgroundColor: '#FF3B30',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 6,
-    },
-    removeButtonText: {
-        color: 'white',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        lineHeight: 20,
-    },
-});

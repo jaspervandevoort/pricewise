@@ -59,7 +59,7 @@ export default function RootLayout() {
       <DataLoader>
         <Stack>
           <Stack.Screen name="index" options={{ title: 'Home' }} />
-          <Stack.Screen name="add-product" options={{ title: 'Add Product' }} />
+          <Stack.Screen name="addproduct" options={{ title: 'Add Product' }} />
           <Stack.Screen name="product-list" options={{ title: 'My Products' }} />
           <Stack.Screen name="create-shopping-list" options={{ title: 'Create Shopping List' }} />
           <Stack.Screen name="optimize-shopping" options={{ title: 'Optimize Shopping' }} />

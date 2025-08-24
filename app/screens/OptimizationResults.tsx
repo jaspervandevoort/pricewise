@@ -1,5 +1,5 @@
 import React, { JSX, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '~/store/store';
 import { optimizeShoppingList, OptimizationResult, StoreOption } from '~/util/optimizationUtils';
@@ -16,26 +16,25 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
     const currentList = useSelector((state: RootState) => state.shoppingList.currentList);
     const savedLists = useSelector((state: RootState) => state.shoppingList.savedLists);
 
-    // Use current list if no specific list ID provided
     const shoppingList = listId
         ? savedLists.find(list => list.id === listId)?.items || []
         : currentList;
 
     const optimization: OptimizationResult = optimizeShoppingList(shoppingList, products);
 
-    const renderStoreOption = (storeOption: StoreOption, isMultiStore: boolean = false) => (
-        <View key={storeOption.storeName} style={styles.storeCard}>
-            <View style={styles.storeHeader}>
-                <Text style={styles.storeName}>{storeOption.storeName}</Text>
-                <Text style={styles.storeCost}>{formatEuropeanPrice(storeOption.totalCost)}</Text>
+    const renderStoreOption = (storeOption: StoreOption) => (
+        <View key={storeOption.storeName} className="bg-white rounded-xl p-4 mb-3 shadow">
+            <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-lg font-bold text-gray-800">{storeOption.storeName}</Text>
+                <Text className="text-lg font-bold text-blue-500">{formatEuropeanPrice(storeOption.totalCost)}</Text>
             </View>
-            <Text style={styles.storeSubtext}>{storeOption.itemCount} items</Text>
+            <Text className="text-sm text-gray-600 mb-3">{storeOption.itemCount} items</Text>
 
-            <View style={styles.itemsList}>
+            <View className="border-t border-gray-100 pt-3">
                 {storeOption.items.map((item, index) => (
-                    <View key={index} style={styles.itemRow}>
-                        <Text style={styles.itemName}>{item.productName}</Text>
-                        <Text style={styles.itemDetails}>
+                    <View key={index} className="flex-row justify-between mb-1">
+                        <Text className="text-sm text-gray-800 flex-1">{item.productName}</Text>
+                        <Text className="text-sm text-gray-600 font-medium">
                             {item.quantity} × {formatEuropeanPrice(item.pricePerUnit)} = {formatEuropeanPrice(item.totalPrice)}
                         </Text>
                     </View>
@@ -44,291 +43,97 @@ export default function OptimizationResults({ listId }: OptimizationResultsProps
         </View>
     );
 
-    const renderUnavailableItems = () => {
-        if (optimization.unavailableItems.length === 0) return null;
-
-        return (
-            <View style={styles.warningCard}>
-                <Text style={styles.warningTitle}>⚠️ Unavailable Items</Text>
-                {optimization.unavailableItems.map((item, index) => (
-                    <Text key={index} style={styles.warningText}>
-                        • {item.productName} (quantity: {item.quantity})
-                    </Text>
-                ))}
-                <Text style={styles.warningSubtext}>
-                    These items aren't in your product database yet.
-                </Text>
-            </View>
-        );
-    };
 
     if (shoppingList.length === 0) {
         return (
-            <View style={styles.container}>
-                <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyTitle}>No shopping list selected</Text>
-                    <Text style={styles.emptySubtext}>Create a shopping list first to see optimization results!</Text>
+            <View className="flex-1 bg-gray-100 p-5">
+                <View className="flex-1 justify-center items-center pt-24">
+                    <Text className="text-xl font-bold text-gray-800 mb-2">No shopping list selected</Text>
+                    <Text className="text-base text-gray-600 text-center">
+                        Create a shopping list first to see optimization results!
+                    </Text>
                 </View>
             </View>
         );
     }
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Price Optimization Results</Text>
+        <ScrollView className="flex-1 bg-gray-100 p-5">
+            <Text className="text-2xl font-bold text-gray-800 text-center mb-5">
+                Price Optimization Results
+            </Text>
 
             {/* Savings Summary */}
             {optimization.savings > 0 && (
-                <View style={styles.savingsCard}>
-                    <Text style={styles.savingsTitle}>💰 Potential Savings</Text>
-                    <Text style={styles.savingsAmount}>{formatEuropeanPrice(optimization.savings)}</Text>
-                    <Text style={styles.savingsSubtext}>
-                        Save by shopping at multiple stores instead of just one
+                <View className="bg-green-500 rounded-xl p-5 mb-5 items-center">
+                    <Text className="text-3xl font-bold text-white mb-2 text-center">Bespaar:</Text>
+                    <Text className="text-3xl font-bold text-white mb-1">
+                        {formatEuropeanPrice(optimization.savings)}
+                    </Text>
+                    <Text className="text-sm text-white opacity-90 text-center">
+                        Door bij verschillende winkels langs te gaan bespaar je het meeste geld!
                     </Text>
                 </View>
             )}
 
-            {/* Tab Navigation */}
-            <View style={styles.tabContainer}>
+
+            <View className="flex-row bg-white rounded-xl p-1 mb-5">
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'multi' && styles.activeTab]}
+                    className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'multi' ? 'bg-blue-500' : ''
+                        }`}
                     onPress={() => setActiveTab('multi')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'multi' && styles.activeTabText]}>
-                        Multi-Store ({formatEuropeanPrice(optimization.totalMultiStoreCost)})
+                    <Text
+                        className={`text-sm font-semibold ${activeTab === 'multi' ? 'text-white' : 'text-gray-600'
+                            }`}
+                    >
+                        Verschillende winkels ({formatEuropeanPrice(optimization.totalMultiStoreCost)})
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'single' && styles.activeTab]}
+                    className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'single' ? 'bg-blue-500' : ''
+                        }`}
                     onPress={() => setActiveTab('single')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>
-                        Single Store ({formatEuropeanPrice(optimization.totalSingleStoreCost)})
+                    <Text
+                        className={`text-sm font-semibold ${activeTab === 'single' ? 'text-white' : 'text-gray-600'
+                            }`}
+                    >
+                        Enkele winkel ({formatEuropeanPrice(optimization.totalSingleStoreCost)})
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Results Content */}
+            {/* Resultaten */}
             {activeTab === 'multi' && (
                 <View>
-                    <Text style={styles.sectionTitle}>Best Multi-Store Strategy</Text>
-                    <Text style={styles.sectionSubtext}>
-                        Shop at multiple stores for maximum savings
+                    <Text className="text-xl font-bold text-gray-800 mb-1">Beste meerdere winkel optie</Text>
+                    <Text className="text-sm text-gray-600 mb-4">
+                        Bij verschillende winkels kopen levert de beste prijs op
                     </Text>
-                    {optimization.multiStoreOption.map(store => renderStoreOption(store, true))}
+                    {optimization.multiStoreOption.map(store => renderStoreOption(store))}
                 </View>
             )}
 
             {activeTab === 'single' && optimization.singleStoreOption && (
                 <View>
-                    <Text style={styles.sectionTitle}>Best Single Store Option</Text>
-                    <Text style={styles.sectionSubtext}>
-                        Get everything at one convenient location
+                    <Text className="text-xl font-bold text-gray-800 mb-1">Beste winkel optie</Text>
+                    <Text className="text-sm text-gray-600 mb-4">
+                        Alles in één winkel kopen
                     </Text>
                     {renderStoreOption(optimization.singleStoreOption)}
                 </View>
             )}
 
             {activeTab === 'single' && !optimization.singleStoreOption && (
-                <View style={styles.noSingleStoreCard}>
-                    <Text style={styles.noSingleStoreTitle}>No Single Store Option</Text>
-                    <Text style={styles.noSingleStoreText}>
-                        No single store has all the items on your list. You'll need to visit multiple stores.
+                <View className="bg-red-100 border border-red-200 rounded-lg p-4">
+                    <Text className="text-base font-bold text-red-800 mb-2">Geen winkel beschikbaar </Text>
+                    <Text className="text-sm text-red-800">
+                        Geen enkele winkel heeft alle producten op je lijstje, om kennis van de app te gebruiken zul je naar meedere winkels moeten gaan.
                     </Text>
                 </View>
             )}
 
-            {renderUnavailableItems()}
         </ScrollView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        padding: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    savingsCard: {
-        backgroundColor: '#34C759',
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
-        alignItems: 'center',
-    },
-    savingsTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 8,
-    },
-    savingsAmount: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 4,
-    },
-    savingsSubtext: {
-        fontSize: 14,
-        color: 'white',
-        textAlign: 'center',
-        opacity: 0.9,
-    },
-    tabContainer: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 4,
-        marginBottom: 20,
-    },
-    tab: {
-        flex: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    activeTab: {
-        backgroundColor: '#007AFF',
-    },
-    tabText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-    },
-    activeTabText: {
-        color: 'white',
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    sectionSubtext: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 16,
-    },
-    storeCard: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    storeHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    storeName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    storeCost: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#007AFF',
-    },
-    storeSubtext: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
-    },
-    itemsList: {
-        borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-        paddingTop: 12,
-    },
-    itemRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 6,
-    },
-    itemName: {
-        fontSize: 14,
-        color: '#333',
-        flex: 1,
-    },
-    itemDetails: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '500',
-    },
-    warningCard: {
-        backgroundColor: '#FFF3CD',
-        borderColor: '#FFEAA7',
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 16,
-        marginTop: 20,
-    },
-    warningTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#856404',
-        marginBottom: 8,
-    },
-    warningText: {
-        fontSize: 14,
-        color: '#856404',
-        marginBottom: 4,
-    },
-    warningSubtext: {
-        fontSize: 12,
-        color: '#856404',
-        marginTop: 8,
-        fontStyle: 'italic',
-    },
-    noSingleStoreCard: {
-        backgroundColor: '#F8D7DA',
-        borderColor: '#F5C6CB',
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 16,
-    },
-    noSingleStoreTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#721C24',
-        marginBottom: 8,
-    },
-    noSingleStoreText: {
-        fontSize: 14,
-        color: '#721C24',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 100,
-    },
-    emptyTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    emptySubtext: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-    },
-});
