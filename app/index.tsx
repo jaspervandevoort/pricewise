@@ -1,3 +1,4 @@
+// app/index.tsx - Updated with Settings link
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, Link } from 'expo-router';
@@ -8,6 +9,7 @@ export default function Home() {
   const products = useSelector((state: RootState) => state.products.products);
   const savedLists = useSelector((state: RootState) => state.shoppingList.savedLists);
   const currentList = useSelector((state: RootState) => state.shoppingList.currentList);
+  const stores = useSelector((state: RootState) => state.stores.stores);
 
   return (
     <>
@@ -34,6 +36,10 @@ export default function Home() {
           <View className="bg-white rounded-2xl p-4 items-center min-w-20 shadow-sm">
             <Text className="text-2xl font-bold text-gray-800 mb-1">{currentList.length}</Text>
             <Text className="text-xs text-gray-600 font-semibold">Current</Text>
+          </View>
+          <View className="bg-white rounded-2xl p-4 items-center min-w-20 shadow-sm">
+            <Text className="text-2xl font-bold text-gray-800 mb-1">{stores.length}</Text>
+            <Text className="text-xs text-gray-600 font-semibold">Stores</Text>
           </View>
         </View>
 
@@ -78,6 +84,17 @@ export default function Home() {
               <View className="flex-1">
                 <Text className="text-lg font-bold text-white mb-1">Optimize Shopping</Text>
                 <Text className="text-sm text-white/90">Find the best prices and savings</Text>
+              </View>
+              <Text className="text-xl text-white font-bold">→</Text>
+            </TouchableOpacity>
+          </Link>
+
+          <Link href="/settings" asChild>
+            <TouchableOpacity className="flex-row items-center bg-purple-500 rounded-2xl p-5 mb-4 shadow-sm">
+              <Text className="text-2xl mr-4">⚙️</Text>
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-white mb-1">Settings</Text>
+                <Text className="text-sm text-white/90">Manage your tracked stores</Text>
               </View>
               <Text className="text-xl text-white font-bold">→</Text>
             </TouchableOpacity>

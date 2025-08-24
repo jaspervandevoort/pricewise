@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '~/store/store';
 import { removeProduct, Product } from '~/store/productSlice';
+import { formatEuropeanPrice } from '~/util/numberUtils';
 
 export default function ProductList(): JSX.Element {
     const products = useSelector((state: RootState) => state.products.products);
@@ -17,7 +18,7 @@ export default function ProductList(): JSX.Element {
             <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.name}</Text>
                 <Text style={styles.productStore}>Store: {item.store}</Text>
-                <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+                <Text style={styles.productPrice}>{formatEuropeanPrice(item.price)}</Text>
             </View>
             <TouchableOpacity
                 style={styles.deleteButton}
@@ -83,18 +84,18 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 1,
+            height: 2,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 3,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     productInfo: {
         flex: 1,
     },
     productName: {
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: 'bold',
         color: '#333',
         marginBottom: 4,
     },
@@ -110,14 +111,13 @@ const styles = StyleSheet.create({
     },
     deleteButton: {
         backgroundColor: '#FF3B30',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
         borderRadius: 6,
     },
     deleteButtonText: {
         color: 'white',
-        fontSize: 14,
-        fontWeight: '600',
+        fontWeight: 'bold',
     },
     emptyContainer: {
         flex: 1,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     emptySubtitle: {
         fontSize: 16,

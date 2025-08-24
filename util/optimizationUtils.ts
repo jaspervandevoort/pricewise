@@ -1,3 +1,4 @@
+// util/optimizationUtils.ts
 import { Product } from '../store/productSlice';
 import { ShoppingListItem } from '../store/shoppingListSlice';
 
@@ -69,19 +70,22 @@ export function optimizeShoppingList(
     const multiStoreOption = calculateMultiStoreOptimization(availableItems, productsByName);
 
     // Find best single store option
-    const bestSingleStore = singleStoreOptions.reduce((best, current) =>
-        current.totalCost < best.totalCost ? current : best
-    );
+    const bestSingleStore = singleStoreOptions.length > 0
+        ? singleStoreOptions.reduce((best, current) =>
+            current.totalCost < best.totalCost ? current : best
+        )
+        : null;
 
-    const totalMultiStoreCost = multiStoreOption.reduce((total, store) => total + store.totalCost, 0);
-    const savings = bestSingleStore.totalCost - totalMultiStoreCost;
+    const totalSingleStoreCost = bestSingleStore?.totalCost || 0;
+    const totalMultiStoreCost = multiStoreOption.reduce((sum, store) => sum + store.totalCost, 0);
+    const savings = Math.max(0, totalSingleStoreCost - totalMultiStoreCost);
 
     return {
         singleStoreOption: bestSingleStore,
         multiStoreOption,
-        totalSingleStoreCost: bestSingleStore.totalCost,
+        totalSingleStoreCost,
         totalMultiStoreCost,
-        savings: Math.max(0, savings),
+        savings,
         unavailableItems
     };
 }
@@ -90,24 +94,26 @@ function calculateSingleStoreOptions(
     shoppingList: ShoppingListItem[],
     productsByName: Map<string, Product[]>
 ): StoreOption[] {
-    const storeOptions = new Map<string, OptimizedItem[]>();
-
     // Get all unique stores
     const allStores = new Set<string>();
     productsByName.forEach(products => {
         products.forEach(product => allStores.add(product.store));
     });
 
+    const storeOptions = new Map<string, OptimizedItem[]>();
+
+    // For each store, check if it can fulfill ALL items in the shopping list
     allStores.forEach(storeName => {
         const storeItems: OptimizedItem[] = [];
         let canFulfillAll = true;
 
         shoppingList.forEach(shoppingItem => {
-            const productsInStore = productsByName.get(shoppingItem.productName)?.filter(p => p.store === storeName);
+            const availableProducts = productsByName.get(shoppingItem.productName) || [];
+            const storeProducts = availableProducts.filter(p => p.store === storeName);
 
-            if (productsInStore && productsInStore.length > 0) {
-                // Find cheapest option in this store for this product
-                const cheapestProduct = productsInStore.reduce((cheapest, current) =>
+            if (storeProducts.length > 0) {
+                // Find cheapest option at this store for this product
+                const cheapestProduct = storeProducts.reduce((cheapest, current) =>
                     current.price < cheapest.price ? current : cheapest
                 );
 
