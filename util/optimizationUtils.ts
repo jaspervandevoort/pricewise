@@ -31,7 +31,7 @@ export function optimizeShoppingList(
     shoppingList: ShoppingListItem[],
     allProducts: Product[]
 ): OptimizationResult {
-    // Group products by name to find all available options
+    // Groepeer producten per naam en per winkel
     const productsByName = new Map<string, Product[]>();
     allProducts.forEach(product => {
         const existing = productsByName.get(product.name) || [];
@@ -39,7 +39,7 @@ export function optimizeShoppingList(
         productsByName.set(product.name, existing);
     });
 
-    // Find items that aren't available in any store
+    // Items die niet beschikbaar zijn in enige winkel
     const unavailableItems: ShoppingListItem[] = [];
     const availableItems: ShoppingListItem[] = [];
 
@@ -63,13 +63,12 @@ export function optimizeShoppingList(
         };
     }
 
-    // Calculate single store options
+
     const singleStoreOptions = calculateSingleStoreOptions(availableItems, productsByName);
 
-    // Calculate multi-store optimization
     const multiStoreOption = calculateMultiStoreOptimization(availableItems, productsByName);
 
-    // Find best single store option
+
     const bestSingleStore = singleStoreOptions.length > 0
         ? singleStoreOptions.reduce((best, current) =>
             current.totalCost < best.totalCost ? current : best

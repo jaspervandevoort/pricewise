@@ -27,9 +27,6 @@ export default function ProductAdd(): JSX.Element {
             const appStores: Store[] = sanityStores.map((s: any) => ({
                 id: s._id,
                 name: s.name,
-                description: s.description || '',
-                location: s.location || '',
-                isActive: s.isActive,
                 dateAdded: s.dateAdded,
             }));
             dispatch(setStores(appStores));

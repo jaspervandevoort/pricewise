@@ -7,9 +7,9 @@ import { addToCurrentList, updateQuantity, saveCurrentList, ShoppingListItem } f
 import { formatEuropeanPrice } from '~/util/numberUtils';
 
 type ProductGroup = {
-    key: string;            // name lowercased
-    name: string;           // display name
-    variants: Product[];    // same product across stores
+    key: string;
+    name: string;
+    variants: Product[];
     lowestPrice: number;
     highestPrice: number;
 };
@@ -20,10 +20,8 @@ export default function CreateShoppingList(): JSX.Element {
     const dispatch = useDispatch<AppDispatch>();
 
     const [listName, setListName] = useState<string>('');
-    // welke store-variant is geselecteerd per product-soort
-    const [selectedByKey, setSelectedByKey] = useState<Record<string, string>>({});
 
-    // 👉 groepeer per soort (productnaam), sorteer varianten op prijs (laagste eerst)
+    // groepeer per soort (productnaam), sorteer varianten op prijs (laagste eerst)
     const groups: ProductGroup[] = useMemo(() => {
         const map: Record<string, ProductGroup> = {};
         for (const p of products) {
@@ -33,18 +31,13 @@ export default function CreateShoppingList(): JSX.Element {
             }
             map[key].variants.push(p);
             map[key].lowestPrice = Math.min(map[key].lowestPrice, p.price);
-            map[key].highestPrice = Math.max(map[key].highestPrice, p.price);
+
         }
         const arr = Object.values(map).map(g => ({
             ...g,
             variants: g.variants.sort((a, b) => a.price - b.price),
         }));
-        // set default (goedkoopste) selectie voor nieuwe groepen
-        const defaults: Record<string, string> = {};
-        arr.forEach(g => (defaults[g.key] = g.variants[0]?.id));
-        setSelectedByKey(prev => ({ ...defaults, ...prev }));
         return arr.sort((a, b) => a.name.localeCompare(b.name));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [products]);
 
     const getQuantityForProductId = (productId: string): number => {
@@ -88,60 +81,34 @@ export default function CreateShoppingList(): JSX.Element {
         currentList.reduce((total, item) => total + item.quantity * item.pricePerUnit, 0);
 
     const renderGroup = ({ item }: { item: ProductGroup }) => {
-        const selectedId = selectedByKey[item.key] || item.variants[0].id;
-        const selected = item.variants.find(v => v.id === selectedId) || item.variants[0];
-        const qty = getQuantityForProductId(selected.id);
+        // Gebruik altijd de goedkoopste variant
+        const cheapestProduct = item.variants[0];
+        const qty = getQuantityForProductId(cheapestProduct.id);
 
         return (
             <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-                <View className="flex-row justify-between items-start mb-2">
+                <View className="flex-row justify-between items-start mb-3">
                     <Text className="text-lg font-bold text-gray-800 flex-1 pr-2">{item.name}</Text>
-                    {item.lowestPrice === item.highestPrice ? (
-                        <Text className="text-blue-600 font-bold">{formatEuropeanPrice(item.lowestPrice)}</Text>
-                    ) : (
-                        <Text className="text-blue-600 font-bold">
-                            {formatEuropeanPrice(item.lowestPrice)}–{formatEuropeanPrice(item.highestPrice)}
-                        </Text>
-                    )}
+                    <Text className="text-blue-600 font-bold">{formatEuropeanPrice(cheapestProduct.price)}</Text>
                 </View>
 
-                {/* store/prijs chips */}
-                <View className="flex-row flex-wrap gap-2 mb-3">
-                    {item.variants.map(v => {
-                        const active = v.id === selectedId;
-                        return (
-                            <TouchableOpacity
-                                key={v.id}
-                                onPress={() => setSelectedByKey(s => ({ ...s, [item.key]: v.id }))}
-                                className={`px-3 py-1.5 rounded-lg border ${active ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-200'
-                                    }`}
-                            >
-                                <Text className={`text-xs font-medium ${active ? 'text-blue-700' : 'text-gray-700'}`}>
-                                    {v.store} • {formatEuropeanPrice(v.price)}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                {/* qty controls for the geselecteerde variant */}
                 <View className="flex-row justify-between items-center">
                     <View className="flex-1 mr-4">
                         <Text className="text-sm text-gray-500">
-                            Geselecteerd: <Text className="font-semibold text-gray-700">{selected.store}</Text>
+                            Winkel: <Text className="font-semibold text-gray-700">{cheapestProduct.store}</Text>
                         </Text>
                     </View>
                     <View className="flex-row items-center">
                         <TouchableOpacity
                             className="bg-blue-500 rounded-md w-8 h-8 items-center justify-center"
-                            onPress={() => handleQuantityChange(selected, qty - 1)}
+                            onPress={() => handleQuantityChange(cheapestProduct, qty - 1)}
                         >
                             <Text className="text-white text-lg font-bold">-</Text>
                         </TouchableOpacity>
                         <Text className="mx-4 text-base font-bold text-gray-800 min-w-[20px] text-center">{qty}</Text>
                         <TouchableOpacity
                             className="bg-blue-500 rounded-md w-8 h-8 items-center justify-center"
-                            onPress={() => handleQuantityChange(selected, qty + 1)}
+                            onPress={() => handleQuantityChange(cheapestProduct, qty + 1)}
                         >
                             <Text className="text-white text-lg font-bold">+</Text>
                         </TouchableOpacity>

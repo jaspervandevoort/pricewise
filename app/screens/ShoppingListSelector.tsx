@@ -8,26 +8,14 @@ import { formatEuropeanPrice } from '~/util/numberUtils';
 
 export default function ShoppingListSelector(): JSX.Element {
     const savedLists = useSelector((state: RootState) => state.shoppingList.savedLists);
-    const currentList = useSelector((state: RootState) => state.shoppingList.currentList);
+
 
     const handleSelectList = (listId: string) => {
         router.push(`/optimization-results?listId=${listId}`);
     };
 
-    const handleOptimizeCurrentList = () => {
-        router.push('/optimization-results');
-    };
-
-    const getCurrentListTotalCost = () => {
-        return currentList.reduce((sum, listItem) =>
-            sum + (listItem.quantity * listItem.pricePerUnit), 0
-        );
-    };
-
-    const getCurrentListTotalItems = () => {
-        return currentList.reduce((sum, listItem) => sum + listItem.quantity, 0);
-    };
-
+    // boodschappenlijsten worden niet opgeslaan in sanity, maar lokaal in redux
+    // dus geen async calls nodig
     const renderListItem = ({ item }: { item: ShoppingList }) => {
         const totalCost = item.items.reduce((sum, listItem) =>
             sum + (listItem.quantity * listItem.pricePerUnit), 0

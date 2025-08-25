@@ -16,13 +16,13 @@ function DataLoader({ children }: { children: React.ReactNode }) {
       try {
 
 
-        // Load products and stores in parallel
+        // Laad producten en winkels parallel
         const [sanityProducts, sanityStores] = await Promise.all([
           getProducts(),
           getStores()
         ]);
 
-        // Convert and dispatch products
+        // zet producten in redux
         const appProducts = sanityProducts.map((sanityProduct: any) => ({
           id: sanityProduct._id,
           name: sanityProduct.name,
@@ -31,7 +31,7 @@ function DataLoader({ children }: { children: React.ReactNode }) {
           dateAdded: sanityProduct.dateAdded
         }));
 
-        // Convert and dispatch stores  
+        // zet winkels in redux
         const appStores = sanityStores.map((sanityStore: any) => ({
           id: sanityStore._id,
           name: sanityStore.name,

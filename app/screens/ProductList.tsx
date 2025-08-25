@@ -21,9 +21,11 @@ export default function ProductList(): JSX.Element {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [groupedView, setGroupedView] = useState(true);
 
+    // producten laden bij mount
     useEffect(() => {
         if (products.length === 0) loadProductsFromSanity();
     }, []);
+
 
     const loadProductsFromSanity = async (showRefresh = false) => {
         try {
@@ -101,7 +103,7 @@ export default function ProductList(): JSX.Element {
         );
     };
 
-    // 🔹 Gegroepeerde view
+    // Gegroepeerde view
     const renderGroupedProduct = ({ item }: { item: GroupedProduct }) => (
         <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
             <View className="flex-row justify-between mb-2">
@@ -183,7 +185,7 @@ export default function ProductList(): JSX.Element {
     if (isLoading) {
         return (
             <View className="flex-1 justify-center items-center bg-gray-100">
-                <Text className="text-lg text-gray-600">Loading products...</Text>
+                <Text className="text-lg text-gray-600">Producten Laden...</Text>
             </View>
         );
     }
